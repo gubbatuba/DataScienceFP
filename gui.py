@@ -1,12 +1,17 @@
 import Tkinter as tk
 from Tkinter import BOTH, END, LEFT, ACTIVE
 #import matplotlib
+from matplotlib import *
 from matplotlib import pyplot as plt
+
 #from matplotlib import style
 #import Vocoder as vc
 #import thinkdsp
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 import reldat
+import test
+import test3
+
 #import winsound
 
 county_names = reldat.counties_names()
@@ -26,9 +31,13 @@ class gui(tk.Tk):
         county_list = []
         chem_list = []
         well_list = []
+        start_date = '01/01/1930'
+        end_date = '12/31/2015'
         global county_list
         global chem_list
         global well_list
+        global start_date
+        global end_date
         #Don't allow gui to be resized
         self.resizable(False,False)
         self.title('Geotracker GAMA Chemical Analyzer')
@@ -150,17 +159,29 @@ class gui(tk.Tk):
         analyze_button.grid(row=4, column=0, padx=2, pady=3)
         self.well_update_list()
 
-    def lawl(self):
-        print (county_list,chem_list,well_list)
+        #Plot area
 
+
+
+    def lawl(self):
+        #self.
+        fig = test.go(self.plot_var.get(),county_list,chem_list,well_list,[start_date,end_date])
+        canvas = FigureCanvasTkAgg(fig, self.plot_area)
+        canvas.show()
+        canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+        toolbar = NavigationToolbar2TkAgg(canvas, self.plot_area)
+        toolbar.update()
+        canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
     def set_start_date(self):
         self.dates_sbox.delete(0, END)
         self.dates_sbox.insert(0,self.dates_lbox.get(ACTIVE))
-
+        start_date = self.dates_lbox.get(ACTIVE)
+    
     def set_end_date(self):
         self.dates_ebox.delete(0, END)
         self.dates_ebox.insert(0,self.dates_lbox.get(ACTIVE))
-
+        end_date = self.dates_lbox.get(ACTIVE)
+    
     def add_well(self,event):
         widget = event.widget
         selection=widget.curselection()
@@ -179,10 +200,32 @@ class gui(tk.Tk):
     def add_chem(self,event):
         widget = event.widget
         selection=widget.curselection()
-        value = widget.get(selection[0])
+        self.v = widget.get(selection[0])
+        self.chemmin = tk.IntVar()
+        self.chemmax = tk.IntVar()
+        #test3.popupWindow(self)
+        self.top=tk.Toplevel(self.master)
+        self.chemmin = 0
+        self.chemmax = 0
+        self.l=tk.Label(self.top,text="Select Min and Max Concentration Values")
+        self.l.pack()
+        self.e=tk.Entry(self.top)
+        self.e2=tk.Entry(self.top)
+        self.e.pack()
+        self.e2.pack()
+        self.b=tk.Button(self.top,text='OK',command=self.cleanup)
+        self.b.pack()
+        #print self.min, self.max
+    def append_chem(self):
+        value = (self.v,self.chemmin,self.chemmax)
         if value not in chem_list:
             chem_list.append(value)
             self.chem_nbox.insert(END,value)
+    def cleanup(self):
+        self.chemmin=self.e.get()
+        self.chemmax=self.e2.get()
+        self.top.destroy()
+        self.append_chem()
 
     def remove_chem(self,event):
         widget = event.widget
